@@ -5,7 +5,7 @@ const APP_CONFIG = {
   // Animation settings
   OPENING_DURATION: 8000,        // Total opening sequence time
   AI_ANIMATION_DURATION: 12000,  // AI processing animation time
-  STORY_SLIDE_DURATION: 4000,    // Time per story slide
+  STORY_SLIDE_DURATION: 5000,    // Time per story slide
   
   // Flow control
   AUTO_PLAY_STORY_FIRST: true,   // true = Story mode auto-plays after AI animation
