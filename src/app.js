@@ -73,7 +73,7 @@ const OpeningSequence = ({ onComplete }) => {
           // Start breathing animation
           const breatheInterval = setInterval(() => {
             setBreatheScale(prev => prev === 1 ? 1.1 : 1);
-          }, 1500);
+          }, 2000);
           
           // Show text after breathing starts
           setTimeout(() => setShowText(true), 1000);
@@ -508,7 +508,7 @@ const ModernAIAnimation = ({ onComplete, finalSymbols }) => {
                 <div
                   key={i}
                   className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse"
-                  style={{ animationDelay: `${i * 0.5}s` }}
+                  style={{ animationDelay: `${i * 1}s` }}
                 />
               ))}
             </div>
@@ -1049,14 +1049,30 @@ export default function App() {
           />
         </div>
       </div>
-
-      <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-600">
-          <p>
-            Ora is a K2A assignment submitted by{' '}
-            <a href="http://linkedin.com/in/arjunshrivatsan" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
-              Arjun Shrivatsan
-            </a>
-            {' '}from{' '}
-            <a href="http://innocencetheory.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
-              Innocence Theory Podcast
+<footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
+  <div className="container mx-auto px-4 text-center text-sm text-gray-600">
+    <p>
+      Ora is a K2A assignment submitted by{' '}
+      <a
+        href="http://linkedin.com/in/arjunshrivatsan"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:text-blue-800 underline"
+      >
+        Arjun Shrivatsan
+      </a>{' '}
+      from{' '}
+      <a
+        href="http://innocencetheory.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:text-blue-800 underline"
+      >
+        Innocence Theory Podcast
+      </a>
+    </p>
+  </div>
+</footer>
+</div>  
+);
+}
