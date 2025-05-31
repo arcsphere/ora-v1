@@ -1,42 +1,393 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+// CONFIGURATION - Make these easily changeable
+const APP_CONFIG = {
+  // Animation settings
+  OPENING_DURATION: 8000,        // Total opening sequence time
+  AI_ANIMATION_DURATION: 12000,  // AI processing animation time
+  STORY_SLIDE_DURATION: 4000,    // Time per story slide
+  
+  // Flow control
+  AUTO_PLAY_STORY_FIRST: true,   // true = Story mode auto-plays after AI animation
+                                 // false = Results page shows first
+  SKIP_OPENING: false,           // true = Skip opening animation for testing
+  
+  // Story mode settings
+  STORY_AUTO_ADVANCE: true,      // Auto-advance through stories
+  ENABLE_TAP_NAVIGATION: true,   // Allow tap to navigate stories
+  
+  // Feedback & Email
+  ENABLE_FEEDBACK: true,         // Show feedback features
+  EMAIL_METHOD: 'mailto',        // 'mailto' or 'api' for guestbook
+  CONTACT_EMAIL: 'hello@innocencetheory.com'
+};
+
 const mockData = {
   quotes: [
-    "The Earth does not belong to us; we belong to the Earth. - Chief Seattle",
-    "Be the change you wish to see in the world. - Gandhi", 
-    "The greatest threat to our planet is the belief that someone else will save it. - Robert Swan"
+    "The Earth does not belong to us; we belong to the Earth. - Chief Seattle (1)",
+    "Be the change you wish to see in the world. - Gandhi (2)",
+    "The greatest threat to our planet is the belief that someone else will save it. - Robert Swan (3)",
+    "Nature always wears the colors of the spirit. - Ralph Waldo Emerson (4)",
+    "Adopt the pace of nature: her secret is patience. - Ralph Waldo Emerson (5)",
+    "Look deep into nature, and then you will understand everything better. - Albert Einstein (6)",
+    "He that plants trees loves others besides himself. - Thomas Fuller (7)",
+    "What is the use of a house if you haven't got a tolerable planet to put it on? - Thoreau (8)",
+    "To cherish what remains of the Earth and to foster its renewal is our only legitimate hope of survival. - Wendell Berry (9)",
+    "One touch of nature makes the whole world kin. - William Shakespeare (10)",
+    "The Earth does not belong to us; we belong to the Earth. - Chief Seattle (11)",
+    "Be the change you wish to see in the world. - Gandhi (12)",
+    "The greatest threat to our planet is the belief that someone else will save it. - Robert Swan (13)",
+    "Nature always wears the colors of the spirit. - Ralph Waldo Emerson (14)",
+    "Adopt the pace of nature: her secret is patience. - Ralph Waldo Emerson (15)",
+    "Look deep into nature, and then you will understand everything better. - Albert Einstein (16)",
+    "He that plants trees loves others besides himself. - Thomas Fuller (17)",
+    "What is the use of a house if you haven't got a tolerable planet to put it on? - Thoreau (18)",
+    "To cherish what remains of the Earth and to foster its renewal is our only legitimate hope of survival. - Wendell Berry (19)",
+    "One touch of nature makes the whole world kin. - William Shakespeare (20)",
+    "The Earth does not belong to us; we belong to the Earth. - Chief Seattle (21)",
+    "Be the change you wish to see in the world. - Gandhi (22)",
+    "The greatest threat to our planet is the belief that someone else will save it. - Robert Swan (23)",
+    "Nature always wears the colors of the spirit. - Ralph Waldo Emerson (24)",
+    "Adopt the pace of nature: her secret is patience. - Ralph Waldo Emerson (25)",
+    "Look deep into nature, and then you will understand everything better. - Albert Einstein (26)",
+    "He that plants trees loves others besides himself. - Thomas Fuller (27)",
+    "What is the use of a house if you haven't got a tolerable planet to put it on? - Thoreau (28)",
+    "To cherish what remains of the Earth and to foster its renewal is our only legitimate hope of survival. - Wendell Berry (29)",
+    "One touch of nature makes the whole world kin. - William Shakespeare (30)",
+    "The Earth does not belong to us; we belong to the Earth. - Chief Seattle (31)",
+    "Be the change you wish to see in the world. - Gandhi (32)",
+    "The greatest threat to our planet is the belief that someone else will save it. - Robert Swan (33)",
+    "Nature always wears the colors of the spirit. - Ralph Waldo Emerson (34)",
+    "Adopt the pace of nature: her secret is patience. - Ralph Waldo Emerson (35)",
+    "Look deep into nature, and then you will understand everything better. - Albert Einstein (36)",
+    "He that plants trees loves others besides himself. - Thomas Fuller (37)",
+    "What is the use of a house if you haven't got a tolerable planet to put it on? - Thoreau (38)",
+    "To cherish what remains of the Earth and to foster its renewal is our only legitimate hope of survival. - Wendell Berry (39)",
+    "One touch of nature makes the whole world kin. - William Shakespeare (40)",
+    "The Earth does not belong to us; we belong to the Earth. - Chief Seattle (41)",
+    "Be the change you wish to see in the world. - Gandhi (42)",
+    "The greatest threat to our planet is the belief that someone else will save it. - Robert Swan (43)",
+    "Nature always wears the colors of the spirit. - Ralph Waldo Emerson (44)",
+    "Adopt the pace of nature: her secret is patience. - Ralph Waldo Emerson (45)",
+    "Look deep into nature, and then you will understand everything better. - Albert Einstein (46)",
+    "He that plants trees loves others besides himself. - Thomas Fuller (47)",
+    "What is the use of a house if you haven't got a tolerable planet to put it on? - Thoreau (48)",
+    "To cherish what remains of the Earth and to foster its renewal is our only legitimate hope of survival. - Wendell Berry (49)",
+    "One touch of nature makes the whole world kin. - William Shakespeare (50)",
   ],
   thoughts: [
-    "Every small action ripples through the web of life, creating waves of change we may never see but always feel.",
-    "Sustainability isn't about perfection—it's about progress, one mindful choice at a time.",
-    "The most revolutionary thing you can do today is to deeply connect with the natural world around you."
+    "Every action in harmony with nature is a step toward collective healing. (1)",
+    "Mindful living is not a sacrifice—it's a return to truth. (2)",
+    "We don’t inherit the earth from our ancestors; we borrow it from our children. (3)",
+    "The planet thrives when we align with its rhythms. (4)",
+    "Your small daily choices are building blocks of global change. (5)",
+    "Nature doesn’t need us; we need nature. (6)",
+    "Progress doesn’t mean faster—it means deeper and wiser. (7)",
+    "You can’t rush the blooming of a flower—neither can you rush change. (8)",
+    "Let nature be not your escape, but your teacher. (9)",
+    "There’s no finish line in sustainability, only checkpoints of progress. (10)",
+    "Every action in harmony with nature is a step toward collective healing. (11)",
+    "Mindful living is not a sacrifice—it's a return to truth. (12)",
+    "We don’t inherit the earth from our ancestors; we borrow it from our children. (13)",
+    "The planet thrives when we align with its rhythms. (14)",
+    "Your small daily choices are building blocks of global change. (15)",
+    "Nature doesn’t need us; we need nature. (16)",
+    "Progress doesn’t mean faster—it means deeper and wiser. (17)",
+    "You can’t rush the blooming of a flower—neither can you rush change. (18)",
+    "Let nature be not your escape, but your teacher. (19)",
+    "There’s no finish line in sustainability, only checkpoints of progress. (20)",
+    "Every action in harmony with nature is a step toward collective healing. (21)",
+    "Mindful living is not a sacrifice—it's a return to truth. (22)",
+    "We don’t inherit the earth from our ancestors; we borrow it from our children. (23)",
+    "The planet thrives when we align with its rhythms. (24)",
+    "Your small daily choices are building blocks of global change. (25)",
+    "Nature doesn’t need us; we need nature. (26)",
+    "Progress doesn’t mean faster—it means deeper and wiser. (27)",
+    "You can’t rush the blooming of a flower—neither can you rush change. (28)",
+    "Let nature be not your escape, but your teacher. (29)",
+    "There’s no finish line in sustainability, only checkpoints of progress. (30)",
+    "Every action in harmony with nature is a step toward collective healing. (31)",
+    "Mindful living is not a sacrifice—it's a return to truth. (32)",
+    "We don’t inherit the earth from our ancestors; we borrow it from our children. (33)",
+    "The planet thrives when we align with its rhythms. (34)",
+    "Your small daily choices are building blocks of global change. (35)",
+    "Nature doesn’t need us; we need nature. (36)",
+    "Progress doesn’t mean faster—it means deeper and wiser. (37)",
+    "You can’t rush the blooming of a flower—neither can you rush change. (38)",
+    "Let nature be not your escape, but your teacher. (39)",
+    "There’s no finish line in sustainability, only checkpoints of progress. (40)",
+    "Every action in harmony with nature is a step toward collective healing. (41)",
+    "Mindful living is not a sacrifice—it's a return to truth. (42)",
+    "We don’t inherit the earth from our ancestors; we borrow it from our children. (43)",
+    "The planet thrives when we align with its rhythms. (44)",
+    "Your small daily choices are building blocks of global change. (45)",
+    "Nature doesn’t need us; we need nature. (46)",
+    "Progress doesn’t mean faster—it means deeper and wiser. (47)",
+    "You can’t rush the blooming of a flower—neither can you rush change. (48)",
+    "Let nature be not your escape, but your teacher. (49)",
+    "There’s no finish line in sustainability, only checkpoints of progress. (50)",
   ],
   actions: [
-    "Take a 10-minute walk outside without your phone and notice 3 things in nature you've never seen before.",
-    "Use only what you need today—pause before every purchase and ask 'Do I really need this?'",
-    "Reach out to one person and share something you learned about sustainability this week."
+    "Unplug unused devices today for 12 hours. (1)",
+    "Try a meatless meal and share the recipe with a friend. (2)",
+    "Pick up 5 pieces of litter during your walk today. (3)",
+    "Take a 3-minute cold shower to reconnect with resource limits. (4)",
+    "Write a thank-you note to your future self for today's eco-conscious act. (5)",
+    "Start a 'needs vs wants' list before buying anything. (6)",
+    "Borrow instead of buy this week: a book, tool, or skill. (7)",
+    "Plant a native flower or herb in your window or yard. (8)",
+    "Say no to plastic today. Every time. (9)",
+    "Walk or bike instead of drive for one trip today. (10)",
+    "Unplug unused devices today for 12 hours. (11)",
+    "Try a meatless meal and share the recipe with a friend. (12)",
+    "Pick up 5 pieces of litter during your walk today. (13)",
+    "Take a 3-minute cold shower to reconnect with resource limits. (14)",
+    "Write a thank-you note to your future self for today's eco-conscious act. (15)",
+    "Start a 'needs vs wants' list before buying anything. (16)",
+    "Borrow instead of buy this week: a book, tool, or skill. (17)",
+    "Plant a native flower or herb in your window or yard. (18)",
+    "Say no to plastic today. Every time. (19)",
+    "Walk or bike instead of drive for one trip today. (20)",
+    "Unplug unused devices today for 12 hours. (21)",
+    "Try a meatless meal and share the recipe with a friend. (22)",
+    "Pick up 5 pieces of litter during your walk today. (23)",
+    "Take a 3-minute cold shower to reconnect with resource limits. (24)",
+    "Write a thank-you note to your future self for today's eco-conscious act. (25)",
+    "Start a 'needs vs wants' list before buying anything. (26)",
+    "Borrow instead of buy this week: a book, tool, or skill. (27)",
+    "Plant a native flower or herb in your window or yard. (28)",
+    "Say no to plastic today. Every time. (29)",
+    "Walk or bike instead of drive for one trip today. (30)",
+    "Unplug unused devices today for 12 hours. (31)",
+    "Try a meatless meal and share the recipe with a friend. (32)",
+    "Pick up 5 pieces of litter during your walk today. (33)",
+    "Take a 3-minute cold shower to reconnect with resource limits. (34)",
+    "Write a thank-you note to your future self for today's eco-conscious act. (35)",
+    "Start a 'needs vs wants' list before buying anything. (36)",
+    "Borrow instead of buy this week: a book, tool, or skill. (37)",
+    "Plant a native flower or herb in your window or yard. (38)",
+    "Say no to plastic today. Every time. (39)",
+    "Walk or bike instead of drive for one trip today. (40)",
+    "Unplug unused devices today for 12 hours. (41)",
+    "Try a meatless meal and share the recipe with a friend. (42)",
+    "Pick up 5 pieces of litter during your walk today. (43)",
+    "Take a 3-minute cold shower to reconnect with resource limits. (44)",
+    "Write a thank-you note to your future self for today's eco-conscious act. (45)",
+    "Start a 'needs vs wants' list before buying anything. (46)",
+    "Borrow instead of buy this week: a book, tool, or skill. (47)",
+    "Plant a native flower or herb in your window or yard. (48)",
+    "Say no to plastic today. Every time. (49)",
+    "Walk or bike instead of drive for one trip today. (50)",
   ],
   news: [
-    "Renewable energy capacity grows 50% globally, led by solar and wind innovations.",
-    "New study reveals urban forests can reduce city temperatures by up to 9°F.",
-    "Ocean cleanup project successfully removes 200,000 pounds of plastic from Pacific."
+    "Wind and solar surpassed coal in energy production for the first time this year. (1)",
+    "Global plastic treaty negotiations reach historic consensus. (2)",
+    "Major retailer commits to fully circular packaging by 2030. (3)",
+    "Indigenous land practices recognized in new UN biodiversity goals. (4)",
+    "Breakthrough algae-based materials set to replace styrofoam. (5)",
+    "Largest coral restoration project in history reports 70% survival rate. (6)",
+    "Global rewilding efforts increase animal populations in degraded zones. (7)",
+    "Cities incentivize green roofs to combat urban heat. (8)",
+    "Farmers adopt AI to optimize water use and reduce waste. (9)",
+    "Carbon capture farms see investment from top climate funds. (10)",
+    "Wind and solar surpassed coal in energy production for the first time this year. (11)",
+    "Global plastic treaty negotiations reach historic consensus. (12)",
+    "Major retailer commits to fully circular packaging by 2030. (13)",
+    "Indigenous land practices recognized in new UN biodiversity goals. (14)",
+    "Breakthrough algae-based materials set to replace styrofoam. (15)",
+    "Largest coral restoration project in history reports 70% survival rate. (16)",
+    "Global rewilding efforts increase animal populations in degraded zones. (17)",
+    "Cities incentivize green roofs to combat urban heat. (18)",
+    "Farmers adopt AI to optimize water use and reduce waste. (19)",
+    "Carbon capture farms see investment from top climate funds. (20)",
+    "Wind and solar surpassed coal in energy production for the first time this year. (21)",
+    "Global plastic treaty negotiations reach historic consensus. (22)",
+    "Major retailer commits to fully circular packaging by 2030. (23)",
+    "Indigenous land practices recognized in new UN biodiversity goals. (24)",
+    "Breakthrough algae-based materials set to replace styrofoam. (25)",
+    "Largest coral restoration project in history reports 70% survival rate. (26)",
+    "Global rewilding efforts increase animal populations in degraded zones. (27)",
+    "Cities incentivize green roofs to combat urban heat. (28)",
+    "Farmers adopt AI to optimize water use and reduce waste. (29)",
+    "Carbon capture farms see investment from top climate funds. (30)",
+    "Wind and solar surpassed coal in energy production for the first time this year. (31)",
+    "Global plastic treaty negotiations reach historic consensus. (32)",
+    "Major retailer commits to fully circular packaging by 2030. (33)",
+    "Indigenous land practices recognized in new UN biodiversity goals. (34)",
+    "Breakthrough algae-based materials set to replace styrofoam. (35)",
+    "Largest coral restoration project in history reports 70% survival rate. (36)",
+    "Global rewilding efforts increase animal populations in degraded zones. (37)",
+    "Cities incentivize green roofs to combat urban heat. (38)",
+    "Farmers adopt AI to optimize water use and reduce waste. (39)",
+    "Carbon capture farms see investment from top climate funds. (40)",
+    "Wind and solar surpassed coal in energy production for the first time this year. (41)",
+    "Global plastic treaty negotiations reach historic consensus. (42)",
+    "Major retailer commits to fully circular packaging by 2030. (43)",
+    "Indigenous land practices recognized in new UN biodiversity goals. (44)",
+    "Breakthrough algae-based materials set to replace styrofoam. (45)",
+    "Largest coral restoration project in history reports 70% survival rate. (46)",
+    "Global rewilding efforts increase animal populations in degraded zones. (47)",
+    "Cities incentivize green roofs to combat urban heat. (48)",
+    "Farmers adopt AI to optimize water use and reduce waste. (49)",
+    "Carbon capture farms see investment from top climate funds. (50)",
   ],
   questions: [
-    "If you could change one habit today that would benefit the planet, what would it be and why?",
-    "What does 'living in harmony with nature' mean to you personally?",
-    "How might your great-grandchildren describe the world you're helping to create?"
+    "What’s one story of nature you wish everyone could hear? (1)",
+    "Where do you feel most connected to the Earth? (2)",
+    "How does sustainability show up in your daily decisions? (3)",
+    "If nature could speak, what do you think it would say to us? (4)",
+    "What would your perfect eco-friendly day look like? (5)",
+    "How have your habits changed in the past year for the planet? (6)",
+    "What scares you most—and what excites you most—about the future? (7)",
+    "What would an ancestor from 200 years ago think of your lifestyle? (8)",
+    "What advice would you give to someone starting their sustainability journey? (9)",
+    "What makes you feel hopeful about the planet? (10)",
+    "What’s one story of nature you wish everyone could hear? (11)",
+    "Where do you feel most connected to the Earth? (12)",
+    "How does sustainability show up in your daily decisions? (13)",
+    "If nature could speak, what do you think it would say to us? (14)",
+    "What would your perfect eco-friendly day look like? (15)",
+    "How have your habits changed in the past year for the planet? (16)",
+    "What scares you most—and what excites you most—about the future? (17)",
+    "What would an ancestor from 200 years ago think of your lifestyle? (18)",
+    "What advice would you give to someone starting their sustainability journey? (19)",
+    "What makes you feel hopeful about the planet? (20)",
+    "What’s one story of nature you wish everyone could hear? (21)",
+    "Where do you feel most connected to the Earth? (22)",
+    "How does sustainability show up in your daily decisions? (23)",
+    "If nature could speak, what do you think it would say to us? (24)",
+    "What would your perfect eco-friendly day look like? (25)",
+    "How have your habits changed in the past year for the planet? (26)",
+    "What scares you most—and what excites you most—about the future? (27)",
+    "What would an ancestor from 200 years ago think of your lifestyle? (28)",
+    "What advice would you give to someone starting their sustainability journey? (29)",
+    "What makes you feel hopeful about the planet? (30)",
+    "What’s one story of nature you wish everyone could hear? (31)",
+    "Where do you feel most connected to the Earth? (32)",
+    "How does sustainability show up in your daily decisions? (33)",
+    "If nature could speak, what do you think it would say to us? (34)",
+    "What would your perfect eco-friendly day look like? (35)",
+    "How have your habits changed in the past year for the planet? (36)",
+    "What scares you most—and what excites you most—about the future? (37)",
+    "What would an ancestor from 200 years ago think of your lifestyle? (38)",
+    "What advice would you give to someone starting their sustainability journey? (39)",
+    "What makes you feel hopeful about the planet? (40)",
+    "What’s one story of nature you wish everyone could hear? (41)",
+    "Where do you feel most connected to the Earth? (42)",
+    "How does sustainability show up in your daily decisions? (43)",
+    "If nature could speak, what do you think it would say to us? (44)",
+    "What would your perfect eco-friendly day look like? (45)",
+    "How have your habits changed in the past year for the planet? (46)",
+    "What scares you most—and what excites you most—about the future? (47)",
+    "What would an ancestor from 200 years ago think of your lifestyle? (48)",
+    "What advice would you give to someone starting their sustainability journey? (49)",
+    "What makes you feel hopeful about the planet? (50)",
   ],
   jokes: [
-    "Why don't climate scientists ever get cold? Because they're always surrounded by warming trends! 🌡️",
-    "What did the solar panel say to the fossil fuel? 'Your time in the sun is over!' ☀️",
-    "Why did the tree go to therapy? It had too many deep roots issues! 🌳"
-  ]
+    "Why did the compost break up with the trash? It felt dumped on! 🌱 (1)",
+    "What’s a solar panel’s favorite kind of music? Anything with a good current! ⚡ (2)",
+    "Why did the bicycle fall over? It was two-tired from saving the planet! 🚲 (3)",
+    "Why don't trees ever get into trouble? They always leaf the scene. 🍃 (4)",
+    "Why did the mushroom start a garden club? Because he was a real fun-gi! 🍄 (5)",
+    "What’s a wind turbine’s favorite type of humor? Whirly puns! 💨 (6)",
+    "Why did the eco-warrior refuse to use paper? Because she didn’t want to draw the line! ✏️ (7)",
+    "Why did the frog call for climate action? He was in a sticky swamp situation! 🐸 (8)",
+    "Why do recyclers love dad jokes? Because they keep coming back around! ♻️ (9)",
+    "Why did the squirrel get a job in tech? To optimize nut-zero emissions! 🐿️ (10)",
+    "Why did the compost break up with the trash? It felt dumped on! 🌱 (11)",
+    "What’s a solar panel’s favorite kind of music? Anything with a good current! ⚡ (12)",
+    "Why did the bicycle fall over? It was two-tired from saving the planet! 🚲 (13)",
+    "Why don't trees ever get into trouble? They always leaf the scene. 🍃 (14)",
+    "Why did the mushroom start a garden club? Because he was a real fun-gi! 🍄 (15)",
+    "What’s a wind turbine’s favorite type of humor? Whirly puns! 💨 (16)",
+    "Why did the eco-warrior refuse to use paper? Because she didn’t want to draw the line! ✏️ (17)",
+    "Why did the frog call for climate action? He was in a sticky swamp situation! 🐸 (18)",
+    "Why do recyclers love dad jokes? Because they keep coming back around! ♻️ (19)",
+    "Why did the squirrel get a job in tech? To optimize nut-zero emissions! 🐿️ (20)",
+    "Why did the compost break up with the trash? It felt dumped on! 🌱 (21)",
+    "What’s a solar panel’s favorite kind of music? Anything with a good current! ⚡ (22)",
+    "Why did the bicycle fall over? It was two-tired from saving the planet! 🚲 (23)",
+    "Why don't trees ever get into trouble? They always leaf the scene. 🍃 (24)",
+    "Why did the mushroom start a garden club? Because he was a real fun-gi! 🍄 (25)",
+    "What’s a wind turbine’s favorite type of humor? Whirly puns! 💨 (26)",
+    "Why did the eco-warrior refuse to use paper? Because she didn’t want to draw the line! ✏️ (27)",
+    "Why did the frog call for climate action? He was in a sticky swamp situation! 🐸 (28)",
+    "Why do recyclers love dad jokes? Because they keep coming back around! ♻️ (29)",
+    "Why did the squirrel get a job in tech? To optimize nut-zero emissions! 🐿️ (30)",
+    "Why did the compost break up with the trash? It felt dumped on! 🌱 (31)",
+    "What’s a solar panel’s favorite kind of music? Anything with a good current! ⚡ (32)",
+    "Why did the bicycle fall over? It was two-tired from saving the planet! 🚲 (33)",
+    "Why don't trees ever get into trouble? They always leaf the scene. 🍃 (34)",
+    "Why did the mushroom start a garden club? Because he was a real fun-gi! 🍄 (35)",
+    "What’s a wind turbine’s favorite type of humor? Whirly puns! 💨 (36)",
+    "Why did the eco-warrior refuse to use paper? Because she didn’t want to draw the line! ✏️ (37)",
+    "Why did the frog call for climate action? He was in a sticky swamp situation! 🐸 (38)",
+    "Why do recyclers love dad jokes? Because they keep coming back around! ♻️ (39)",
+    "Why did the squirrel get a job in tech? To optimize nut-zero emissions! 🐿️ (40)",
+    "Why did the compost break up with the trash? It felt dumped on! 🌱 (41)",
+    "What’s a solar panel’s favorite kind of music? Anything with a good current! ⚡ (42)",
+    "Why did the bicycle fall over? It was two-tired from saving the planet! 🚲 (43)",
+    "Why don't trees ever get into trouble? They always leaf the scene. 🍃 (44)",
+    "Why did the mushroom start a garden club? Because he was a real fun-gi! 🍄 (45)",
+    "What’s a wind turbine’s favorite type of humor? Whirly puns! 💨 (46)",
+    "Why did the eco-warrior refuse to use paper? Because she didn’t want to draw the line! ✏️ (47)",
+    "Why did the frog call for climate action? He was in a sticky swamp situation! 🐸 (48)",
+    "Why do recyclers love dad jokes? Because they keep coming back around! ♻️ (49)",
+    "Why did the squirrel get a job in tech? To optimize nut-zero emissions! 🐿️ (50)",
+  ],
 };
 
 const inspirationalQuotes = [
-  "Stay uncomfortable to be at the edges of change. — Bhargavi, K2A Academy",
-  "Growth happens when we embrace the uncertainty of tomorrow. — Anonymous",
-  "The future belongs to those who act today. — Environmental Activist"
+  "Stay uncomfortable to be at the edges of change. — Bhargavi, K2A Academy (1)",
+  "Growth happens when we embrace the uncertainty of tomorrow. — Anonymous (2)",
+  "The future belongs to those who act today. — Environmental Activist (3)",
+  "Be still long enough to hear the Earth whisper back. — Arjun (4)",
+  "Hope begins with action, not optimism. — Climate Advocate (5)",
+  "Stay uncomfortable to be at the edges of change. — Bhargavi, K2A Academy (6)",
+  "Growth happens when we embrace the uncertainty of tomorrow. — Anonymous (7)",
+  "The future belongs to those who act today. — Environmental Activist (8)",
+  "Be still long enough to hear the Earth whisper back. — Arjun (9)",
+  "Hope begins with action, not optimism. — Climate Advocate (10)",
+  "Stay uncomfortable to be at the edges of change. — Bhargavi, K2A Academy (11)",
+  "Growth happens when we embrace the uncertainty of tomorrow. — Anonymous (12)",
+  "The future belongs to those who act today. — Environmental Activist (13)",
+  "Be still long enough to hear the Earth whisper back. — Arjun (14)",
+  "Hope begins with action, not optimism. — Climate Advocate (15)",
+  "Stay uncomfortable to be at the edges of change. — Bhargavi, K2A Academy (16)",
+  "Growth happens when we embrace the uncertainty of tomorrow. — Anonymous (17)",
+  "The future belongs to those who act today. — Environmental Activist (18)",
+  "Be still long enough to hear the Earth whisper back. — Arjun (19)",
+  "Hope begins with action, not optimism. — Climate Advocate (20)",
+  "Stay uncomfortable to be at the edges of change. — Bhargavi, K2A Academy (21)",
+  "Growth happens when we embrace the uncertainty of tomorrow. — Anonymous (22)",
+  "The future belongs to those who act today. — Environmental Activist (23)",
+  "Be still long enough to hear the Earth whisper back. — Arjun (24)",
+  "Hope begins with action, not optimism. — Climate Advocate (25)",
+  "Stay uncomfortable to be at the edges of change. — Bhargavi, K2A Academy (26)",
+  "Growth happens when we embrace the uncertainty of tomorrow. — Anonymous (27)",
+  "The future belongs to those who act today. — Environmental Activist (28)",
+  "Be still long enough to hear the Earth whisper back. — Arjun (29)",
+  "Hope begins with action, not optimism. — Climate Advocate (30)",
+  "Stay uncomfortable to be at the edges of change. — Bhargavi, K2A Academy (31)",
+  "Growth happens when we embrace the uncertainty of tomorrow. — Anonymous (32)",
+  "The future belongs to those who act today. — Environmental Activist (33)",
+  "Be still long enough to hear the Earth whisper back. — Arjun (34)",
+  "Hope begins with action, not optimism. — Climate Advocate (35)",
+  "Stay uncomfortable to be at the edges of change. — Bhargavi, K2A Academy (36)",
+  "Growth happens when we embrace the uncertainty of tomorrow. — Anonymous (37)",
+  "The future belongs to those who act today. — Environmental Activist (38)",
+  "Be still long enough to hear the Earth whisper back. — Arjun (39)",
+  "Hope begins with action, not optimism. — Climate Advocate (40)",
+  "Stay uncomfortable to be at the edges of change. — Bhargavi, K2A Academy (41)",
+  "Growth happens when we embrace the uncertainty of tomorrow. — Anonymous (42)",
+  "The future belongs to those who act today. — Environmental Activist (43)",
+  "Be still long enough to hear the Earth whisper back. — Arjun (44)",
+  "Hope begins with action, not optimism. — Climate Advocate (45)",
+  "Stay uncomfortable to be at the edges of change. — Bhargavi, K2A Academy (46)",
+  "Growth happens when we embrace the uncertainty of tomorrow. — Anonymous (47)",
+  "The future belongs to those who act today. — Environmental Activist (48)",
+  "Be still long enough to hear the Earth whisper back. — Arjun (49)",
+  "Hope begins with action, not optimism. — Climate Advocate (50)",
 ];
 
 const slotSymbols = ['●', '▲', '■', '◆', '★', '♦', '▼', '◀', '▶', '♠', '♣', '♥', '⬢', '⬟', '⚡', '☀', '🌙', '⭐', '🔥', '💧'];
@@ -139,6 +490,11 @@ const OpeningSequence = ({ onComplete }) => {
         .slide-up-animation {
           animation: slide-up-gentle 1s ease-out;
         }
+        canvas {
+  width: 100%;
+  height: 400px; 
+  display: block;
+}
       `}</style>
     </div>
   );
@@ -457,6 +813,8 @@ const ModernAIAnimation = ({ onComplete, finalSymbols }) => {
           return prev - 1;
         });
       }, 1500);
+      
+      return () => clearInterval(countdownInterval);
     }
   }, [phase, onComplete]);
   
@@ -588,7 +946,7 @@ const ModernAIAnimation = ({ onComplete, finalSymbols }) => {
 
 const StoryMode = ({ isOpen, onClose, cardData }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(APP_CONFIG.STORY_AUTO_ADVANCE);
   const [isAutoStarted, setIsAutoStarted] = useState(false);
   const [storyTimer, setStoryTimer] = useState(null);
 
@@ -615,7 +973,7 @@ const StoryMode = ({ isOpen, onClose, cardData }) => {
         }
         return prev + 1;
       });
-    }, 4000); // 4 seconds per story
+    }, APP_CONFIG.STORY_SLIDE_DURATION);
 
     setStoryTimer(timer);
     return () => clearTimeout(timer);
@@ -629,7 +987,7 @@ const StoryMode = ({ isOpen, onClose, cardData }) => {
         setStoryTimer(null);
       }
       setCurrentIndex(0);
-      setIsPlaying(true);
+      setIsPlaying(APP_CONFIG.STORY_AUTO_ADVANCE);
       setIsAutoStarted(false);
     }
   }, [isOpen, storyTimer]);
@@ -787,11 +1145,13 @@ const StoryMode = ({ isOpen, onClose, cardData }) => {
         </button>
       </div>
 
-      {/* Tap zones for mobile navigation */}
-      <div className="absolute inset-0 flex z-20">
-        <div className="flex-1" onClick={handlePrev} />
-        <div className="flex-1" onClick={handleNext} />
-      </div>
+      {/* Tap zones for mobile navigation - only if enabled */}
+      {APP_CONFIG.ENABLE_TAP_NAVIGATION && (
+        <div className="absolute inset-0 flex z-20">
+          <div className="flex-1" onClick={handlePrev} />
+          <div className="flex-1" onClick={handleNext} />
+        </div>
+      )}
 
       <style>{`
         @keyframes float-gentle {
@@ -852,7 +1212,7 @@ const StoryMode = ({ isOpen, onClose, cardData }) => {
         }
         
         .progress-animation {
-          animation: progress-slow 4s linear;
+          animation: progress-slow ${APP_CONFIG.STORY_SLIDE_DURATION}ms linear;
         }
       `}</style>
     </div>
@@ -875,8 +1235,50 @@ const ResultCard = ({ title, content, symbol, isLight = true }) => {
   );
 };
 
+// Feedback Component (only shows if enabled)
+const FeedbackSection = ({ onFeedback }) => {
+  if (!APP_CONFIG.ENABLE_FEEDBACK) return null;
+  
+  const sendFeedback = (type) => {
+    if (APP_CONFIG.EMAIL_METHOD === 'mailto') {
+      const subject = `Ora Feedback - ${type}`;
+      const body = `Hi there,\n\nI wanted to share some feedback about Ora:\n\n[Your feedback here]\n\nThanks!`;
+      window.location.href = `mailto:${APP_CONFIG.CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    } else {
+      // API integration would go here
+      onFeedback?.(type);
+    }
+  };
+  
+  return (
+    <div className="text-center py-8 border-t border-gray-200">
+      <p className="text-gray-600 mb-4 font-light">How was your Ora experience?</p>
+      <div className="flex justify-center space-x-4">
+        <button
+          onClick={() => sendFeedback('positive')}
+          className="px-6 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-full transition-colors text-sm"
+        >
+          ✨ Loved it
+        </button>
+        <button
+          onClick={() => sendFeedback('suggestion')}
+          className="px-6 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full transition-colors text-sm"
+        >
+          💡 Suggestion
+        </button>
+        <button
+          onClick={() => sendFeedback('issue')}
+          className="px-6 py-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-full transition-colors text-sm"
+        >
+          🐛 Issue
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
-  const [showOpening, setShowOpening] = useState(true);
+  const [showOpening, setShowOpening] = useState(!APP_CONFIG.SKIP_OPENING);
   const [hasDrawn, setHasDrawn] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
@@ -907,22 +1309,36 @@ export default function App() {
     };
     
     setResults(content);
-    setShowAnimation(true); // Show AI animation first
+    setShowAnimation(true);
   };
 
   const handleAnimationComplete = () => {
     setShowAnimation(false);
+    
+    // KEY FIX: Auto-play story mode if configured
+    if (APP_CONFIG.AUTO_PLAY_STORY_FIRST) {
+      setShowStoryMode(true);
+    } else {
+      setShowResults(true);
+    }
+  };
+
+  const handleStoryComplete = () => {
+    setShowStoryMode(false);
     setShowResults(true);
   };
 
   const handleReset = () => {
     setShowResults(false);
     setShowAnimation(false);
+    setShowStoryMode(false);
     setHasDrawn(false);
     setDrawingData(null);
+    setResults({});
   };
 
-  if (showOpening) {
+  // Skip opening if configured for testing
+  if (showOpening && !APP_CONFIG.SKIP_OPENING) {
     return <OpeningSequence onComplete={() => setShowOpening(false)} />;
   }
 
@@ -978,16 +1394,18 @@ export default function App() {
                 <EvolvingShape isActive={true} />
               </div>
 
-              {/* Play Button for Story Mode */}
-              <div className="text-center mb-12">
-                <button
-                  onClick={() => setShowStoryMode(true)}
-                  className="px-8 py-3 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 flex items-center space-x-3 mx-auto"
-                >
-                  <span>▶</span>
-                  <span className="font-light">Play Your Journey</span>
-                </button>
-              </div>
+              {/* Play Button for Story Mode - only show if not auto-playing */}
+              {!APP_CONFIG.AUTO_PLAY_STORY_FIRST && (
+                <div className="text-center mb-12">
+                  <button
+                    onClick={() => setShowStoryMode(true)}
+                    className="px-8 py-3 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 flex items-center space-x-3 mx-auto"
+                  >
+                    <span>▶</span>
+                    <span className="font-light">Play Your Journey</span>
+                  </button>
+                </div>
+              )}
 
               {drawingData && (
                 <div className="mb-16">
@@ -1022,6 +1440,9 @@ export default function App() {
                 <ResultCard title={cardData[5].title} content={cardData[5].content} symbol={cardData[5].symbol} isLight={false} />
               </div>
 
+              {/* Feedback Section */}
+              <FeedbackSection />
+
               <div className="text-center pb-8">
                 <button
                   onClick={handleReset}
@@ -1044,35 +1465,36 @@ export default function App() {
           {/* Story Mode Overlay */}
           <StoryMode 
             isOpen={showStoryMode} 
-            onClose={() => setShowStoryMode(false)}
+            onClose={handleStoryComplete}
             cardData={cardData}
           />
         </div>
       </div>
-<footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
-  <div className="container mx-auto px-4 text-center text-sm text-gray-600">
-    <p>
-      Ora is a K2A assignment submitted by{' '}
-      <a
-        href="http://linkedin.com/in/arjunshrivatsan"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 hover:text-blue-800 underline"
-      >
-        Arjun Shrivatsan
-      </a>{' '}
-      from{' '}
-      <a
-        href="http://innocencetheory.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 hover:text-blue-800 underline"
-      >
-        Innocence Theory Podcast
-      </a>
-    </p>
-  </div>
-</footer>
-</div>  
-);
+
+      <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
+        <div className="container mx-auto px-4 text-center text-sm text-gray-600">
+          <p>
+            Ora is a K2A assignment submitted by{' '}
+            <a
+              href="http://linkedin.com/in/arjunshrivatsan"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              Arjun Shrivatsan
+            </a>{' '}
+            from{' '}
+            <a
+              href="http://innocencetheory.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              Innocence Theory Podcast
+            </a>
+          </p>
+        </div>
+      </footer>
+    </div>  
+  );
 }
