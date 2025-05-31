@@ -39,7 +39,7 @@ Ora means **hour** in Latin, **light** in Hebrew, and echoes **aura**, **now**, 
 ---
 🌍 Live Demo
 Once deployed:
-🔗 https://ora.vercel.app
+🔗 https://ora-lime.vercel.app/
 
 ✨ Credits & Acknowledgments
 Inspired from the various activities under the Knowledge2Action (K2A) program organised by SwissNex team.
